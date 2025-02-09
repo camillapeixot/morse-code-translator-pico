@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 add_executable(blink
-    blink.c
+    Morse.c
     ssd1306.c  # Inclua o arquivo ssd1306.c aqui
 )
 

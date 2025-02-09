@@ -5,11 +5,9 @@
 #include "hardware/gpio.h"
 #include "ssd1306.h"
 
-
-// Definição dos GPIOs conforme a placa BitDogLab
 #define PINO_NEXT 5
 #define PINO_CONFIRM 6
-#define PINO_FINALIZA 22  // Novo botão para finalizar entrada
+#define PINO_FINALIZA 22
 #define BUZZER 10
 #define SDA_PIN 14
 #define SCL_PIN 15
@@ -19,14 +17,13 @@ i2c_inst_t *i2c = i2c0;
 ssd1306_t display;
 
 void setup_oled() {
-    // Inicializa a interface I2C
-    i2c_init(i2c, 400000);  // Frequência de 400 kHz para I2C
+    i2c_init(i2c, 400000);  
     gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
     gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
     gpio_pull_up(SDA_PIN);
     gpio_pull_up(SCL_PIN);
     
-    // Inicializa o display SSD1306 (tamanho 128x64)
+    // Inicializa o display SSD1306
     ssd1306_init(&display, SSD1306_WIDTH, SSD1306_HEIGHT, SSD1306_I2C_ADDRESS, i2c);
 }
 
@@ -41,21 +38,21 @@ const char *morse_code[] = {
 
 const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
 
-// Função para capturar entrada do usuário com anti-repique
+// Função para capturar entrada do usuário
 void get_user_input(char *input) {
     int index = 0, length = 0;
 
     while (1) {
         if (!gpio_get(PINO_NEXT)) {
             sleep_ms(100);  // Debounce
-            while (!gpio_get(PINO_NEXT));  // Aguarda soltar o botão
+            while (!gpio_get(PINO_NEXT));
             index = (index + 1) % strlen(alphabet);
             printf("Letra atual: %c\n", alphabet[index]);
         }
         if (!gpio_get(PINO_CONFIRM)) {
             sleep_ms(100);  // Debounce
-            while (!gpio_get(PINO_CONFIRM));  // Aguarda soltar o botão
-            if (length < 99) {  // Evita overflow do array
+            while (!gpio_get(PINO_CONFIRM));
+            if (length < 99) {
                 input[length++] = alphabet[index];
                 input[length] = '\0';
                 printf("Adicionado: %c\n", alphabet[index]);
@@ -66,7 +63,7 @@ void get_user_input(char *input) {
                 ssd1306_show(&display);
             }
         }
-        if (!gpio_get(PINO_FINALIZA)) {  // Novo botão para finalizar entrada
+        if (!gpio_get(PINO_FINALIZA)) { 
             sleep_ms(100);
             while (!gpio_get(PINO_FINALIZA));
             break;
@@ -117,19 +114,18 @@ int main() {
     setup_oled();
 
     // Configura o LED embutido da Pico
-    const uint LED_PIN = 25;  // GPIO 25 é o LED embutido
+    const uint LED_PIN = 25;
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
 
-    // Faz o LED piscar 5 vezes no início
+    // LED piscar 5 vezes para indicar que esta funcionando
     for (int i = 0; i < 5; i++) {
         gpio_put(LED_PIN, 1);
         sleep_ms(500);
         gpio_put(LED_PIN, 0);
         sleep_ms(500);
     }
-
-    // Inicializa os GPIOs
+   
     gpio_init(PINO_NEXT);
     gpio_set_dir(PINO_NEXT, GPIO_IN);
     gpio_pull_up(PINO_NEXT);
